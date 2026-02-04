@@ -1,6 +1,5 @@
 import express from 'express';
-import { requireAuth } from '../config/clerk.js';
-import { verifyAuth } from '../middleware/auth.js';
+import { clerkAuth } from "../middleware/clerkAuth.js";
 import {
   createExpense,
   getExpenses,
@@ -17,10 +16,7 @@ import {
 } from '../utils/validators.js';
 
 const router = express.Router();
-
-// Apply Clerk authentication middleware to all routes
-router.use(requireAuth);
-router.use(verifyAuth);
+router.use(clerkAuth);
 
 // @route   POST /api/expenses
 // @desc    Create new expense
