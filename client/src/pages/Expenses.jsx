@@ -49,7 +49,7 @@ const Expenses = () => {
       });
 
       // ✅ ONLY FIX: Correct response unwrap
-      setExpenses(response?.expenses || []);
+      setExpenses(response?.data  || []);
 
       setPagination(
         response?.pagination || {
