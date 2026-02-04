@@ -40,8 +40,16 @@ export const ExpenseProvider = ({ children }) => {
       const appliedFilters = { ...filters, ...customFilters };
       const response = await expenseService.getExpenses(appliedFilters);
 
-      setExpenses(response.data);
-      setPagination(response.pagination);
+      setExpenses(response.expenses || []);
+setPagination(
+  response.pagination || {
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0,
+  }
+);
+
     } catch (err) {
       setError(err.message);
       console.error('Fetch Expenses Error:', err);

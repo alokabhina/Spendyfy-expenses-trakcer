@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import expenseService from '../services/expenseService';
-import Button from '../components/common/Button';
-import Modal from '../components/common/Modal';
-import Loader from '../components/common/Loader';
-import ErrorMessage from '../components/common/ErrorMessage';
-import ExpenseForm from '../components/expense/ExpenseForm';
-import ExpenseCard from '../components/expense/ExpenseCard';
-import ExpenseList from '../components/expense/ExpenseList';
-import ExpenseFilter from '../components/expense/ExpenseFilter';
-import { exportToCSV } from '../utils/exportCSV';
-import { exportToPDF } from '../utils/exportPDF';
+import React, { useState, useEffect } from "react";
+import expenseService from "../services/expenseService";
+import Button from "../components/common/Button";
+import Modal from "../components/common/Modal";
+import Loader from "../components/common/Loader";
+import ErrorMessage from "../components/common/ErrorMessage";
+import ExpenseForm from "../components/expense/ExpenseForm";
+import ExpenseCard from "../components/expense/ExpenseCard";
+import ExpenseList from "../components/expense/ExpenseList";
+import ExpenseFilter from "../components/expense/ExpenseFilter";
+import { exportToCSV } from "../utils/exportCSV";
+import { exportToPDF } from "../utils/exportPDF";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
-  
+  const [viewMode, setViewMode] = useState("list"); // 'list' or 'grid'
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Pagination
   const [pagination, setPagination] = useState({
     page: 1,
@@ -29,7 +29,7 @@ const Expenses = () => {
     total: 0,
     pages: 0,
   });
-  
+
   // Filters
   const [filters, setFilters] = useState({});
 
@@ -48,8 +48,17 @@ const Expenses = () => {
         limit: pagination.limit,
       });
 
-      setExpenses(response.data);
-      setPagination(response.pagination);
+      // ✅ FIX: Service already returns unwrapped payload
+      setExpenses(response.expenses || []);
+
+      setPagination(
+        response.pagination || {
+          page: 1,
+          limit: 10,
+          total: 0,
+          pages: 0,
+        }
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -76,7 +85,7 @@ const Expenses = () => {
       await expenseService.deleteExpense(expense._id);
       fetchExpenses();
     } catch (err) {
-      alert('Error deleting expense: ' + err.message);
+      alert("Error deleting expense: " + err.message);
     }
   };
 
@@ -94,7 +103,7 @@ const Expenses = () => {
       setEditingExpense(null);
       fetchExpenses();
     } catch (err) {
-      alert('Error saving expense: ' + err.message);
+      alert("Error saving expense: " + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -102,24 +111,30 @@ const Expenses = () => {
 
   const handleFilter = (newFilters) => {
     setFilters(newFilters);
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleResetFilter = () => {
     setFilters({});
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleExportCSV = () => {
-    exportToCSV(expenses, `expenses-${new Date().toISOString().split('T')[0]}.csv`);
+    exportToCSV(
+      expenses,
+      `expenses-${new Date().toISOString().split("T")[0]}.csv`
+    );
   };
 
   const handleExportPDF = () => {
-    exportToPDF(expenses, `expenses-${new Date().toISOString().split('T')[0]}.pdf`);
+    exportToPDF(
+      expenses,
+      `expenses-${new Date().toISOString().split("T")[0]}.pdf`
+    );
   };
 
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
   if (loading && expenses.length === 0) {
@@ -132,19 +147,26 @@ const Expenses = () => {
       <div className="expenses-header">
         <div>
           <h1>Expenses</h1>
-          <p className="text-secondary">
-            Manage and track all your expenses
-          </p>
+          <p className="text-secondary">Manage and track all your expenses</p>
         </div>
+
         <div className="expenses-actions">
-          <Button onClick={handleAddExpense}>
-            ➕ Add Expense
-          </Button>
+          <Button onClick={handleAddExpense}>➕ Add Expense</Button>
+
           <div className="export-buttons">
-            <Button variant="outline" onClick={handleExportCSV} disabled={expenses.length === 0}>
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              disabled={expenses.length === 0}
+            >
               📊 Export CSV
             </Button>
-            <Button variant="outline" onClick={handleExportPDF} disabled={expenses.length === 0}>
+
+            <Button
+              variant="outline"
+              onClick={handleExportPDF}
+              disabled={expenses.length === 0}
+            >
               📄 Export PDF
             </Button>
           </div>
@@ -162,16 +184,22 @@ const Expenses = () => {
         <p className="text-secondary">
           Showing {expenses.length} of {pagination.total} expenses
         </p>
+
         <div className="view-toggle">
           <button
-            className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
+            className={`view-toggle-btn ${
+              viewMode === "list" ? "active" : ""
+            }`}
+            onClick={() => setViewMode("list")}
           >
             📋 List
           </button>
+
           <button
-            className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => setViewMode('grid')}
+            className={`view-toggle-btn ${
+              viewMode === "grid" ? "active" : ""
+            }`}
+            onClick={() => setViewMode("grid")}
           >
             📱 Grid
           </button>
@@ -181,9 +209,9 @@ const Expenses = () => {
       {/* Expenses Display */}
       {loading ? (
         <Loader />
-      ) : viewMode === 'grid' ? (
+      ) : viewMode === "grid" ? (
         <div className="expenses-grid">
-          {expenses.map(expense => (
+          {expenses.map((expense) => (
             <ExpenseCard
               key={expense._id}
               expense={expense}
@@ -210,17 +238,19 @@ const Expenses = () => {
           >
             Previous
           </button>
-          
+
           {[...Array(pagination.pages)].map((_, index) => (
             <button
               key={index + 1}
-              className={`pagination-btn ${pagination.page === index + 1 ? 'active' : ''}`}
+              className={`pagination-btn ${
+                pagination.page === index + 1 ? "active" : ""
+              }`}
               onClick={() => handlePageChange(index + 1)}
             >
               {index + 1}
             </button>
           ))}
-          
+
           <button
             className="pagination-btn"
             onClick={() => handlePageChange(pagination.page + 1)}
@@ -238,7 +268,7 @@ const Expenses = () => {
           setShowModal(false);
           setEditingExpense(null);
         }}
-        title={editingExpense ? 'Edit Expense' : 'Add New Expense'}
+        title={editingExpense ? "Edit Expense" : "Add New Expense"}
       >
         <ExpenseForm
           expense={editingExpense}
@@ -255,3 +285,4 @@ const Expenses = () => {
 };
 
 export default Expenses;
+    

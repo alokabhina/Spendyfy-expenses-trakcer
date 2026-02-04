@@ -21,8 +21,9 @@ const Profile = () => {
     try {
       setLoading(true);
       const response = await expenseService.getUserProfile();
-      setUserProfile(response.data);
-      setMonthlyBudget(response.data.monthlyBudget || '');
+      setUserProfile(response || {});
+setMonthlyBudget(response?.monthlyBudget || 0);
+
     } catch (err) {
       console.error('Error fetching profile:', err);
     } finally {
