@@ -57,5 +57,6 @@ api.interceptors.response.use(
     }
   }
 );
+console.log("✅ BASE URL =", API_URL);
 
 export default api;
