@@ -65,6 +65,7 @@ const Expenses = () => {
     } finally {
       setLoading(false);
     }
+    console.log("EXPENSE API RESPONSE:", response);
   };
 
   const handleAddExpense = () => {
