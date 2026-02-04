@@ -48,24 +48,43 @@ const Expenses = () => {
         limit: pagination.limit,
       });
 
-      // ✅ ONLY FIX: Correct response unwrap
-      setExpenses(response?.data  || []);
+      console.log("📦 Response from service:", response);
 
-      setPagination(
-        response?.pagination || {
-          page: 1,
-          limit: 10,
-          total: 0,
-          pages: 0,
-        }
-      );
+      // ✅ FIXED: Handle multiple possible response structures
+      let expensesData = [];
+      let paginationData = {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pages: 0,
+      };
+
+      // Check different possible structures
+      if (response?.expenses && Array.isArray(response.expenses)) {
+        // Structure: { expenses: [...], pagination: {...} }
+        expensesData = response.expenses;
+        paginationData = response.pagination || paginationData;
+      } else if (Array.isArray(response)) {
+        // Structure: [...]
+        expensesData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        // Structure: { data: [...] }
+        expensesData = response.data;
+      }
+
+      console.log("✅ Setting expenses:", expensesData);
+      console.log("✅ Setting pagination:", paginationData);
+
+      setExpenses(expensesData);
+      setPagination(paginationData);
+
     } catch (err) {
-      console.error("Fetch Expenses Error:", err);
-      setError(err.message);
+      console.error("❌ Fetch Expenses Error:", err);
+      console.error("❌ Error response:", err.response);
+      setError(err.response?.data?.message || err.message || "Failed to fetch expenses");
     } finally {
       setLoading(false);
     }
-    console.log("EXPENSE API RESPONSE:", response);
   };
 
   const handleAddExpense = () => {
@@ -228,6 +247,14 @@ const Expenses = () => {
           onEdit={handleEditExpense}
           onDelete={handleDeleteExpense}
         />
+      )}
+
+      {/* No Expenses Message */}
+      {!loading && expenses.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-secondary">No expenses found</p>
+          <p className="text-sm text-secondary mt-2">Try adjusting your filters or add a new expense</p>
+        </div>
       )}
 
       {/* Pagination */}

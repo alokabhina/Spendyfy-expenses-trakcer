@@ -1,12 +1,22 @@
 import api from "./api";
 
 /**
- * ✅ Helper: Always return actual payload
- * Handles both:
- * 1) { success: true, data: {...} }
- * 2) Direct {...}
+ * ✅ FIXED Helper: Properly unwrap API responses
+ * Backend returns: { success: true, data: { expenses: [...], pagination: {...} } }
+ * OR: { success: true, data: [...] }
  */
-const unwrap = (res) => res?.data?.data ?? res?.data;
+const unwrap = (res) => {
+  // If response has data.data, use that (nested structure)
+  if (res?.data?.data) {
+    return res.data.data;
+  }
+  // Otherwise use data directly
+  if (res?.data) {
+    return res.data;
+  }
+  // Fallback to the response itself
+  return res;
+};
 
 // Expense Service
 const expenseService = {
@@ -31,7 +41,12 @@ const expenseService = {
     });
 
     const response = await api.get(`/expenses?${params.toString()}`);
-    return unwrap(response);
+    const unwrapped = unwrap(response);
+    
+    console.log("🔍 getExpenses - Raw Response:", response);
+    console.log("🔍 getExpenses - Unwrapped:", unwrapped);
+    
+    return unwrapped;
   },
 
   // Get recent expenses
