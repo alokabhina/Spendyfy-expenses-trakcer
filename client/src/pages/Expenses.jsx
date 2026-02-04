@@ -15,7 +15,7 @@ const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState("list"); // 'list' or 'grid'
+  const [viewMode, setViewMode] = useState("list");
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -48,11 +48,11 @@ const Expenses = () => {
         limit: pagination.limit,
       });
 
-      // ✅ FIX: Service already returns unwrapped payload
-      setExpenses(response.expenses || []);
+      // ✅ FIX: Correct response unwrap
+      setExpenses(response?.data || []);
 
       setPagination(
-        response.pagination || {
+        response?.pagination || {
           page: 1,
           limit: 10,
           total: 0,
@@ -60,6 +60,7 @@ const Expenses = () => {
         }
       );
     } catch (err) {
+      console.error("Fetch Expenses Error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -285,4 +286,3 @@ const Expenses = () => {
 };
 
 export default Expenses;
-    

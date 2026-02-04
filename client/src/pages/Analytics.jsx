@@ -10,11 +10,18 @@ import { formatDateForInput, getCurrentMonthRange } from '../utils/dateHelpers';
 const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [stats, setStats] = useState(null);
+
+  // ✅ Default safe objects
+  const [stats, setStats] = useState({
+    totalAmount: 0,
+    totalCount: 0,
+    categoryStats: [],
+  });
+
   const [categoryData, setCategoryData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [comparison, setComparison] = useState(null);
-  
+
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: '',
@@ -33,18 +40,26 @@ const Analytics = () => {
       if (dateRange.startDate) filters.startDate = dateRange.startDate;
       if (dateRange.endDate) filters.endDate = dateRange.endDate;
 
-      const [dashboardStats, categoryStats, trends, compareData] = await Promise.all([
-        expenseService.getDashboardStats(filters),
-        expenseService.getCategoryAnalytics(filters),
-        expenseService.getMonthlyTrends(12),
-        expenseService.getExpenseComparison(),
-      ]);
+      const [dashboardStats, categoryStats, trends, compareData] =
+        await Promise.all([
+          expenseService.getDashboardStats(filters),
+          expenseService.getCategoryAnalytics(filters),
+          expenseService.getMonthlyTrends(12),
+          expenseService.getExpenseComparison(),
+        ]);
 
-      setStats(dashboardStats.data);
-      setCategoryData(categoryStats.data);
-      setMonthlyData(dashboardStats.data.monthlyExpenses || []);
-      setComparison(compareData.data);
+      // ✅ Safe unwrap everywhere
+      setStats(dashboardStats?.data || {});
+
+      setCategoryData(categoryStats?.data || []);
+
+      // ✅ Monthly chart always comes from trends API (Correct)
+      setMonthlyData(trends?.data || []);
+
+      setComparison(compareData?.data || null);
+
     } catch (err) {
+      console.error("Analytics Error:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -120,31 +135,40 @@ const Analytics = () => {
       {/* Summary Stats */}
       <div className="summary-stats">
         <div className="summary-stat">
-          <div className="summary-stat-value">{formatCurrency(stats?.totalAmount || 0)}</div>
+          <div className="summary-stat-value">
+            {formatCurrency(stats?.totalAmount || 0)}
+          </div>
           <div className="summary-stat-label">Total Spent</div>
         </div>
-        <div className="summary-stat">
-          <div className="summary-stat-value">{stats?.totalCount || 0}</div>
-          <div className="summary-stat-label">Transactions</div>
-        </div>
+
         <div className="summary-stat">
           <div className="summary-stat-value">
-            {stats?.totalCount > 0 
-              ? formatCurrency(stats.totalAmount / stats.totalCount) 
+            {stats?.totalCount || 0}
+          </div>
+          <div className="summary-stat-label">Transactions</div>
+        </div>
+
+        <div className="summary-stat">
+          <div className="summary-stat-value">
+            {stats?.totalCount > 0
+              ? formatCurrency(stats.totalAmount / stats.totalCount)
               : formatCurrency(0)}
           </div>
           <div className="summary-stat-label">Avg per Transaction</div>
         </div>
+
         <div className="summary-stat">
-          <div className="summary-stat-value">{categoryData?.length || 0}</div>
+          <div className="summary-stat-value">
+            {categoryData?.length || 0}
+          </div>
           <div className="summary-stat-label">Active Categories</div>
         </div>
       </div>
 
       {/* Charts */}
       <div className="analytics-row">
-        <CategoryChart data={stats?.categoryStats || []} />
-        <MonthlyChart data={monthlyData} />
+        <CategoryChart data={categoryData || []} />
+        <MonthlyChart data={monthlyData || []} />
       </div>
 
       {/* Category Breakdown Table */}
@@ -152,6 +176,7 @@ const Analytics = () => {
         <div className="category-breakdown-header">
           <h2>Category Details</h2>
         </div>
+
         <div className="category-list">
           {categoryData.map((item) => (
             <div key={item.category} className="category-item">
@@ -161,9 +186,12 @@ const Analytics = () => {
                 </div>
                 <div className="category-item-details">
                   <div className="category-item-name">{item.category}</div>
-                  <div className="category-item-count">{item.count} transactions</div>
+                  <div className="category-item-count">
+                    {item.count} transactions
+                  </div>
                 </div>
               </div>
+
               <div className="category-item-amount">
                 <div className="category-amount-value">
                   {formatCurrency(item.total)}
@@ -183,6 +211,7 @@ const Analytics = () => {
           <div className="comparison-header">
             <h2>Monthly Comparison</h2>
           </div>
+
           <div className="comparison-cards">
             <div className="comparison-card">
               <div className="comparison-period">Current Month</div>
@@ -209,9 +238,11 @@ const Analytics = () => {
               <div className="comparison-amount">
                 {formatCurrency(Math.abs(comparison.change.amount))}
               </div>
-              <div className={`comparison-change ${
-                comparison.change.amount > 0 ? 'increase' : 'decrease'
-              }`}>
+              <div
+                className={`comparison-change ${
+                  comparison.change.amount > 0 ? 'increase' : 'decrease'
+                }`}
+              >
                 <span className="comparison-arrow">
                   {comparison.change.amount > 0 ? '↑' : '↓'}
                 </span>
