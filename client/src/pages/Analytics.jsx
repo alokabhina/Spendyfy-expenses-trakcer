@@ -48,15 +48,11 @@ const Analytics = () => {
           expenseService.getExpenseComparison(),
         ]);
 
-      // ✅ Safe unwrap everywhere
-      setStats(dashboardStats?.data || {});
-
-      setCategoryData(categoryStats?.data || []);
-
-      // ✅ Monthly chart always comes from trends API (Correct)
-      setMonthlyData(trends?.data || []);
-
-      setComparison(compareData?.data || null);
+      // ✅ ONLY FIXED HERE (No UI Change)
+      setStats(dashboardStats || {});
+      setCategoryData(categoryStats || []);
+      setMonthlyData(trends || []);
+      setComparison(compareData || null);
 
     } catch (err) {
       console.error("Analytics Error:", err);

@@ -48,8 +48,8 @@ const Expenses = () => {
         limit: pagination.limit,
       });
 
-      // ✅ FIX: Correct response unwrap
-      setExpenses(response?.data || []);
+      // ✅ ONLY FIX: Correct response unwrap
+      setExpenses(response?.expenses || []);
 
       setPagination(
         response?.pagination || {
